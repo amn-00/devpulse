@@ -22,7 +22,7 @@ Similar to Geekbot and Standuply, but built from scratch as a full-stack product
 ## Live Demo
 
 - 🌐 **Frontend:** [devpulse.vercel.app](https://devpulse-kappa-rouge.vercel.app)
-- 🔌 **Backend API:** [devpulse-api.onrender.com](https://devpulse-naz4.onrender.com)
+- 🔌 **Backend API:** [devpulse-api.onrender.com](https://devpulse-naz4.onrender.com/api/health)
 
 ---
 
