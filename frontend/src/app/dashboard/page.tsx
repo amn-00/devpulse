@@ -1,4 +1,5 @@
 "use client";
+import AISummary from "@/components/AISummary";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { getDashboard, resolveBlocker } from "@/lib/api";
@@ -195,6 +196,11 @@ export default function DashboardPage() {
                   ))}
                 </div>
               )}
+            </div>
+
+            {/* AI Standup Summary */}
+            <div className="card mt-6">
+              <AISummary />
             </div>
           </div>
         )}
