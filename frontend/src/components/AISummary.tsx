@@ -63,7 +63,7 @@ export default function AISummary() {
         <div>
           <h3 className="text-lg font-semibold">🤖 AI Standup Summary</h3>
           <p className="text-xs text-gray-500 mt-0.5">
-            Powered by GPT-3.5 · Prompt engineered for structured output
+            Powered by Groq LLaMA · Prompt engineered for structured output
           </p>
         </div>
         <button
@@ -84,7 +84,7 @@ export default function AISummary() {
       {loading && (
         <div className="card text-center py-8">
           <div className="text-gray-400 text-sm animate-pulse">
-            🤖 Analysing standup entries with GPT-3.5...
+            🤖 Analysing standup entries with LLaMA...
           </div>
         </div>
       )}
