@@ -8,12 +8,13 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue)
 ![Redis](https://img.shields.io/badge/Redis-Upstash-red)
 ![Jest](https://img.shields.io/badge/Jest-29-orange)
+![LLM](https://img.shields.io/badge/LLM-Groq%20LLaMA-purple)
 
 ---
 
 ## What Problem Does This Solve?
 
-Remote engineering teams waste time in daily standups repeating status updates verbally, and blockers often get mentioned once and then forgotten. **DevPulse** lets engineers post async daily updates (what I did, what's next, blockers), automatically flags unresolved blockers older than 24 hours, and gives managers a live team health dashboard — all without a live meeting.
+Remote engineering teams waste time in daily standups repeating status updates verbally, and blockers often get mentioned once and then forgotten. **DevPulse** lets engineers post async daily updates (what I did, what's next, blockers), automatically flags unresolved blockers older than 24 hours, and gives managers a live team health dashboard with AI-generated summaries — all without a live meeting.
 
 Similar to Geekbot and Standuply, but built from scratch as a full-stack production-grade application.
 
@@ -21,8 +22,8 @@ Similar to Geekbot and Standuply, but built from scratch as a full-stack product
 
 ## Live Demo
 
-- 🌐 **Frontend:** [devpulse.vercel.app](https://devpulse-kappa-rouge.vercel.app)
-- 🔌 **Backend API:** [devpulse-api.onrender.com](https://devpulse-naz4.onrender.com/api/health)
+- 🌐 **Frontend:** [devpulse-kappa-rouge.vercel.app](https://devpulse-kappa-rouge.vercel.app)
+- 🔌 **Backend API:** [devpulse-naz4.onrender.com/api/health](https://devpulse-naz4.onrender.com/api/health)
 
 ---
 
@@ -36,7 +37,8 @@ Similar to Geekbot and Standuply, but built from scratch as a full-stack product
 | Database | PostgreSQL (Neon — serverless) |
 | Cache | Redis (Upstash — serverless) |
 | Auth | JWT (jsonwebtoken + bcryptjs) |
-| Testing | Jest + Supertest (15+ tests) |
+| AI Summary | Groq LLaMA API + Prompt Engineering |
+| Testing | Jest + Supertest (17 tests) |
 | Deployment | Vercel (frontend) + Render (backend) |
 
 ---
@@ -45,10 +47,11 @@ Similar to Geekbot and Standuply, but built from scratch as a full-stack product
 
 - **JWT-based team authentication** — managers create teams, members join via invite code
 - **Daily standup entries** — structured yesterday/today/blockers form
-- **Auto-blocker flagging** — any blocker unresolved after 24 hours gets flagged 🚨 on the dashboard automatically
-- **Team health dashboard** — managers see: who posted today, active blockers, 7-day posting streak per member
-- **Redis caching** — dashboard aggregation query cached for 5 minutes; response shows `cached: true/false` so you can verify it's working
-- **15+ Jest/Supertest tests** — auth endpoints, standup creation, dashboard, blocker resolution
+- **Auto-blocker flagging** — any blocker unresolved after 24 hours gets flagged 🚨 automatically
+- **Team health dashboard** — managers see who posted today, active blockers, 7-day posting streak
+- **AI Standup Summary** — manager clicks one button to get a LLaMA-generated structured daily summary with team health score, achievements, active blockers, and priorities — powered by Groq with prompt-engineered JSON output
+- **Redis caching** — dashboard aggregation cached for 5 minutes; response shows `cached: true/false`
+- **17 Jest/Supertest tests** — auth, standup, dashboard, blocker resolution
 
 ---
 
@@ -59,24 +62,21 @@ Similar to Geekbot and Standuply, but built from scratch as a full-stack product
 │  Next.js Frontend (TypeScript)                          │
 │  Pages: Login · Create Team · Join Team                 │
 │         Standup Form · Manager Dashboard                │
+│         AI Summary Component                            │
 └────────────────────────┬────────────────────────────────┘
                          │ HTTP (axios)
 ┌────────────────────────▼────────────────────────────────┐
 │  Express.js REST API                                    │
 │  Routes: /api/auth/* · /api/standup · /api/dashboard   │
-│          /api/blockers/:id/resolve                      │
+│          /api/blockers/:id/resolve · /api/summary       │
 │  Middleware: JWT auth · CORS · Error handling           │
-└────────────────────────┬────────────────────────────────┘
-                         │
-            ┌────────────┴────────────┐
-            ▼                         ▼
-┌───────────────────┐    ┌───────────────────────┐
-│  PostgreSQL        │    │  Redis (Upstash)      │
-│  Tables:           │    │  Dashboard cache      │
-│  teams · users     │    │  TTL: 5 minutes       │
-│  standup_entries   │    └───────────────────────┘
-│  blockers          │
-└───────────────────┘
+└──────────┬──────────────────────┬───────────────────────┘
+           │                      │                        
+┌──────────▼────────┐  ┌──────────▼────────┐  ┌──────────────────┐
+│  PostgreSQL        │  │  Redis (Upstash)  │  │  Groq LLaMA API  │
+│  4 tables          │  │  Dashboard cache  │  │  AI Summary      │
+│  FK constraints    │  │  TTL: 5 minutes   │  │  Prompt Eng.     │
+└───────────────────┘  └───────────────────┘  └──────────────────┘
 ```
 
 ---
@@ -100,6 +100,7 @@ blockers       — id, entry_id (FK), user_id (FK), team_id (FK),
 - Node.js 18+
 - A free [Neon.tech](https://neon.tech) account (PostgreSQL)
 - A free [Upstash.com](https://upstash.com) account (Redis)
+- A free [Groq API key](https://console.groq.com) (for AI Summary)
 
 ### 1. Clone the repo
 ```bash
@@ -112,9 +113,9 @@ cd devpulse
 cd backend
 npm install
 cp .env.example .env
-# Fill in your DATABASE_URL, REDIS_URL, and JWT_SECRET in .env
-npm run migrate   # Creates all database tables
-npm run dev       # Starts on http://localhost:4000
+# Fill in DATABASE_URL, REDIS_URL, JWT_SECRET, GROQ_API_KEY
+npm run migrate
+npm run dev
 ```
 
 ### 3. Set up the frontend
@@ -123,15 +124,14 @@ cd ../frontend
 npm install
 cp .env.example .env.local
 # Set NEXT_PUBLIC_API_URL=http://localhost:4000
-npm run dev       # Starts on http://localhost:3000
+npm run dev
 ```
 
 ### 4. Run tests
 ```bash
 cd backend
-cp .env.test.example .env.test
-# Set your test database URL in .env.test (use a separate Neon branch)
 npm test
+# 17 tests passing
 ```
 
 ---
@@ -140,64 +140,34 @@ npm test
 
 ### Auth
 ```bash
-POST /api/auth/create-team   # Create team + manager account
-POST /api/auth/join-team     # Join via invite code
-POST /api/auth/login         # Login
+POST /api/auth/create-team
+POST /api/auth/join-team
+POST /api/auth/login
 ```
 
 ### Standup (requires JWT)
 ```bash
-POST /api/standup            # Submit today's standup
-GET  /api/standup/mine       # My entry history
-GET  /api/dashboard          # Team dashboard (manager only)
-PATCH /api/blockers/:id/resolve  # Resolve a blocker
+POST /api/standup
+GET  /api/standup/mine
+GET  /api/dashboard
+PATCH /api/blockers/:id/resolve
+POST /api/summary              # AI-generated standup summary (manager only)
 ```
-
-### Example — submit a standup with a blocker
-```bash
-curl -X POST http://localhost:4000/api/standup \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "yesterday": "Completed the auth API",
-    "today": "Build the dashboard UI",
-    "blockerDescription": "Waiting on design review approval"
-  }'
-```
-
----
-
-## Deployment
-
-### Backend → Render
-1. Push repo to GitHub
-2. New Web Service on [render.com](https://render.com)
-3. Build command: `npm install`
-4. Start command: `npm start`
-5. Add environment variables (DATABASE_URL, REDIS_URL, JWT_SECRET, NODE_ENV=production)
-6. After deploy, run migration: `npm run migrate`
-
-### Frontend → Vercel
-1. Import repo on [vercel.com](https://vercel.com)
-2. Set root directory to `frontend`
-3. Add env variable: `NEXT_PUBLIC_API_URL=https://your-render-url.onrender.com`
-4. Deploy
 
 ---
 
 ## Resume Bullet Points
+
 ```
-DevPulse — Async Standup & Blocker Tracker  ·  TypeScript · Next.js · Express.js · PostgreSQL · Redis · Jest
+DevPulse — Async Standup & Blocker Tracker
+TypeScript · Next.js · Express.js · PostgreSQL · Redis · Jest
 
-• Built full-stack team standup tracker solving async status reporting for remote 
-  engineering teams; auto-flags blockers unresolved after 24 hours on manager dashboard
+- Built async team standup tracker — JWT auth, PostgreSQL schema
+  (4 tables), Redis caching with 5-min TTL, auto-flags unresolved
+  blockers after 24h; integrated Groq LLaMA API to generate
+  structured daily summaries with prompt-engineered JSON output
 
-• Implemented JWT team-scoped authentication (bcrypt + jsonwebtoken), normalized 
-  PostgreSQL schema (4 tables, FK constraints), and Redis caching reducing repeated 
-  dashboard query load with 5-minute TTL
-
-• Wrote 15+ Jest/Supertest integration tests covering auth, standup submission, 
-  dashboard aggregation, and blocker resolution endpoints; deployed on Vercel + Render
+- 17 Jest/Supertest integration tests passing; deployed on Vercel + Render
 ```
 
 ---
