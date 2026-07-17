@@ -87,6 +87,47 @@ const features = [
   },
 ];
 
+const steps = [
+  {
+    num: "1",
+    title: "Post your update",
+    desc: "Each dev shares what they did, what's next, and any blockers — in under a minute, whenever it suits their timezone.",
+  },
+  {
+    num: "2",
+    title: "AI summarizes the day",
+    desc: "DevPulse uses LLaMA to condense the whole team's updates into one crisp summary, with blockers surfaced first.",
+  },
+  {
+    num: "3",
+    title: "Everyone stays synced",
+    desc: "Managers see progress and blockers at a glance on the dashboard. No meeting required.",
+  },
+];
+
+const features = [
+  {
+    icon: "🤖",
+    title: "AI-powered summaries",
+    desc: "Groq-hosted LLaMA turns raw standup notes into clear daily digests for the whole team.",
+  },
+  {
+    icon: "🚧",
+    title: "Blocker tracking",
+    desc: "Blockers are flagged and surfaced to managers immediately — nothing gets buried in chat.",
+  },
+  {
+    icon: "📊",
+    title: "Manager dashboard",
+    desc: "One view of who posted, who's blocked, and how the team is trending day over day.",
+  },
+  {
+    icon: "🌏",
+    title: "Async-first",
+    desc: "Built for remote teams across timezones. Kill the 9 AM standup call for good.",
+  },
+];
+
 export default function Home() {
   const { user, setAuth } = useAuth();
   const router = useRouter();
