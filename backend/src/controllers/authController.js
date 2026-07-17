@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const pool = require("../config/db");
+const { ensureDemoData } = require("../config/demoSeed");
 
 function generateInviteCode() {
   return crypto.randomBytes(4).toString("hex").toUpperCase(); // e.g. "A1B2C3D4"
@@ -127,4 +128,20 @@ async function login(req, res) {
   }
 }
 
-module.exports = { createTeam, joinTeam, login };
+/**
+ * POST /api/auth/demo — one-click demo login.
+ * Lazily (re)seeds the demo team so entries always exist for today,
+ * then signs a token for the demo manager. No password involved.
+ */
+async function demoLogin(req, res) {
+  try {
+    const manager = await ensureDemoData();
+    const token = signToken(manager);
+    res.json({ token, user: manager });
+  } catch (err) {
+    console.error("Demo login failed:", err);
+    res.status(500).json({ error: "Demo is temporarily unavailable" });
+  }
+}
+
+module.exports = { createTeam, joinTeam, login, demoLogin };

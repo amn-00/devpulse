@@ -31,6 +31,8 @@ export const joinTeam = (data: {
 export const login = (data: { email: string; password: string }) =>
   api.post("/api/auth/login", data);
 
+export const demoLogin = () => api.post("/api/auth/demo");
+
 // Standup
 export const submitStandup = (data: {
   yesterday: string;
