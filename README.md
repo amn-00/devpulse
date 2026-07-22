@@ -2,6 +2,7 @@
 
 **Portfolio Project | Aman Chaudhary | Full-Stack Engineer**
 
+![CI](https://github.com/amn-00/devpulse/actions/workflows/ci.yml/badge.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)
 ![Next.js](https://img.shields.io/badge/Next.js-14-black)
 ![Express](https://img.shields.io/badge/Express.js-4.19-green)
