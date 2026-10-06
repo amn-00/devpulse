@@ -95,7 +95,7 @@ async function generateSummary(req, res) {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "llama-3.1-8b-instant",
+        model: "openai/gpt-oss-20b",
         messages: [{ role: "user", content: prompt }],
         temperature: 0.3, // lower = more consistent, structured output
         max_tokens: 500,
@@ -125,7 +125,7 @@ async function generateSummary(req, res) {
       summary,
       entries_count: entries.length,
       generated_at: new Date().toISOString(),
-      model: "llama-3.1-8b-instant",
+      model: "openai/gpt-oss-20b",
       prompt_tokens: data.usage?.prompt_tokens,
       completion_tokens: data.usage?.completion_tokens,
     });
