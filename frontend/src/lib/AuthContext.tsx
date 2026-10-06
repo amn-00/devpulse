@@ -11,6 +11,7 @@ import { User } from "@/types";
 interface AuthContextType {
   user: User | null;
   token: string | null;
+  ready: boolean; // true once the stored session has been restored
   setAuth: (token: string, user: User) => void;
   logout: () => void;
 }
@@ -18,6 +19,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   user: null,
   token: null,
+  ready: false,
   setAuth: () => {},
   logout: () => {},
 });
@@ -25,6 +27,7 @@ const AuthContext = createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
@@ -33,6 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setToken(storedToken);
       setUser(JSON.parse(storedUser));
     }
+    setReady(true);
   }, []);
 
   function setAuth(newToken: string, newUser: User) {
@@ -50,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, setAuth, logout }}>
+    <AuthContext.Provider value={{ user, token, ready, setAuth, logout }}>
       {children}
     </AuthContext.Provider>
   );

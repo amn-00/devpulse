@@ -11,7 +11,7 @@ import {
 } from "@/components/icons";
 
 export default function StandupPage() {
-  const { user, logout } = useAuth();
+  const { user, ready, logout } = useAuth();
   const router = useRouter();
   const [form, setForm] = useState({ yesterday: "", today: "", blockerDescription: "" });
   const [history, setHistory] = useState<StandupEntry[]>([]);
@@ -20,9 +20,10 @@ export default function StandupPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (!ready) return; // wait for the stored session before redirecting
     if (!user) { router.replace("/login"); return; }
     getMyEntries().then((res) => setHistory(res.data.entries)).catch(() => {});
-  }, [user, router]);
+  }, [ready, user, router]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();

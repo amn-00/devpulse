@@ -49,7 +49,7 @@ function BlockerCard({ blocker, onResolve }: {
 }
 
 export default function DashboardPage() {
-  const { user, logout } = useAuth();
+  const { user, ready, logout } = useAuth();
   const router = useRouter();
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
   const [loading, setLoading] = useState(true);
@@ -67,12 +67,13 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
+    if (!ready) return; // wait for the stored session before redirecting
     if (!user) { router.replace("/login"); return; }
     if (user.role !== "manager") { router.replace("/standup"); return; }
     fetchDashboard();
     const interval = setInterval(fetchDashboard, 60_000); // refresh every minute
     return () => clearInterval(interval);
-  }, [user, router, fetchDashboard]);
+  }, [ready, user, router, fetchDashboard]);
 
   async function handleResolve(id: number) {
     try {
