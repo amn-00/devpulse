@@ -1,6 +1,10 @@
 "use client";
 import { useState } from "react";
 import axios from "axios";
+import {
+  IconAlertCircle, IconAlertTriangle, IconCheck, IconCircleCheck, IconSparkles,
+  IconSpinner, IconTarget,
+} from "@/components/icons";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -21,15 +25,9 @@ interface SummaryResponse {
 }
 
 const HEALTH_COLORS: Record<string, string> = {
-  Green: "text-green-400 bg-green-900/30 border-green-700",
-  Yellow: "text-yellow-400 bg-yellow-900/30 border-yellow-700",
-  Red: "text-red-400 bg-red-900/30 border-red-700",
-};
-
-const HEALTH_EMOJI: Record<string, string> = {
-  Green: "🟢",
-  Yellow: "🟡",
-  Red: "🔴",
+  Green: "text-success bg-success/10 border-success/30",
+  Yellow: "text-warning bg-warning/10 border-warning/30",
+  Red: "text-danger bg-danger/10 border-danger/30",
 };
 
 export default function AISummary() {
@@ -58,101 +56,124 @@ export default function AISummary() {
   }
 
   return (
-    <div className="mt-2">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h3 className="text-lg font-semibold">🤖 AI Standup Summary</h3>
-          <p className="text-xs text-gray-500 mt-0.5">
-            Powered by Groq LLaMA · Prompt engineered for structured output
-          </p>
+    <div>
+      <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-start gap-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-primary/30 bg-primary/10 text-primary-fg">
+            <IconSparkles className="h-4 w-4" />
+          </span>
+          <div>
+            <h3 className="section-title">AI Standup Summary</h3>
+            <p className="mt-0.5 text-xs text-fg-subtle">
+              Powered by Groq LLaMA · Prompt engineered for structured output
+            </p>
+          </div>
         </div>
         <button
           onClick={generate}
           disabled={loading}
-          className="btn-primary text-sm py-2 px-4 disabled:opacity-50"
+          aria-busy={loading}
+          className="btn-primary self-start"
         >
-          {loading ? "Generating..." : "✨ Generate Summary"}
+          {loading
+            ? <IconSpinner className="h-4 w-4 animate-spin" />
+            : <IconSparkles className="h-4 w-4" />}
+          {loading ? "Generating..." : "Generate Summary"}
         </button>
       </div>
 
       {error && (
-        <div className="bg-red-900/40 border border-red-700 text-red-300 rounded-lg px-4 py-3 text-sm">
-          {error}
+        <div role="alert" className="alert-error">
+          <IconAlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>{error}</span>
         </div>
       )}
 
       {loading && (
-        <div className="card text-center py-8">
-          <div className="text-gray-400 text-sm animate-pulse">
-            🤖 Analysing standup entries with LLaMA...
-          </div>
+        <div role="status" className="panel space-y-3">
+          <p className="flex items-center gap-2 text-sm text-fg-muted">
+            <IconSpinner className="h-4 w-4 animate-spin text-primary-fg" />
+            Analysing standup entries with LLaMA...
+          </p>
+          <div className="skeleton h-3 w-full" />
+          <div className="skeleton h-3 w-5/6" />
+          <div className="skeleton h-3 w-2/3" />
         </div>
       )}
 
       {result && (
         <div className="space-y-4">
           {/* Team health badge */}
-          <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm font-medium ${HEALTH_COLORS[result.summary.team_health]}`}>
-            {HEALTH_EMOJI[result.summary.team_health]} Team Health: {result.summary.team_health}
-            <span className="text-xs font-normal opacity-75">— {result.summary.team_health_reason}</span>
+          <div className={`flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border px-3 py-2 text-sm ${HEALTH_COLORS[result.summary.team_health]}`}>
+            <span className="h-2 w-2 shrink-0 rounded-full bg-current" aria-hidden="true" />
+            <span className="font-medium">Team Health: {result.summary.team_health}</span>
+            <span className="text-fg-muted">— {result.summary.team_health_reason}</span>
           </div>
 
           {/* Summary */}
-          <div className="card">
-            <p className="text-sm font-medium text-gray-400 mb-2 uppercase tracking-wide text-xs">Overview</p>
-            <p className="text-gray-200 text-sm leading-relaxed">{result.summary.summary}</p>
+          <div className="panel">
+            <p className="mb-2 text-xs font-medium uppercase tracking-wider text-fg-subtle">Overview</p>
+            <p className="text-sm leading-relaxed text-fg">{result.summary.summary}</p>
           </div>
 
           {/* 3 columns */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="card">
-              <p className="text-xs font-semibold text-green-400 uppercase tracking-wide mb-3">✅ Achievements</p>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="panel">
+              <p className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-success">
+                <IconCircleCheck className="h-3.5 w-3.5" />Achievements
+              </p>
               {result.summary.achievements.length > 0 ? (
-                <ul className="space-y-1.5">
+                <ul className="space-y-2">
                   {result.summary.achievements.map((a, i) => (
-                    <li key={i} className="text-sm text-gray-300 flex gap-2">
-                      <span className="text-green-500 shrink-0">·</span>{a}
+                    <li key={i} className="flex gap-2.5 text-sm leading-relaxed text-fg-muted">
+                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-success" aria-hidden="true" />{a}
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className="text-sm text-gray-500">None reported</p>
+                <p className="text-sm text-fg-subtle">None reported</p>
               )}
             </div>
 
-            <div className="card">
-              <p className="text-xs font-semibold text-amber-400 uppercase tracking-wide mb-3">🚧 Active Blockers</p>
+            <div className="panel">
+              <p className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-warning">
+                <IconAlertTriangle className="h-3.5 w-3.5" />Active Blockers
+              </p>
               {result.summary.active_blockers.length > 0 ? (
-                <ul className="space-y-1.5">
+                <ul className="space-y-2">
                   {result.summary.active_blockers.map((b, i) => (
-                    <li key={i} className="text-sm text-amber-300 flex gap-2">
-                      <span className="shrink-0">·</span>{b}
+                    <li key={i} className="flex gap-2.5 text-sm leading-relaxed text-fg-muted">
+                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-warning" aria-hidden="true" />{b}
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className="text-sm text-green-400">🎉 No blockers!</p>
+                <p className="flex items-center gap-1.5 text-sm text-success">
+                  <IconCheck className="h-4 w-4" />No blockers
+                </p>
               )}
             </div>
 
-            <div className="card">
-              <p className="text-xs font-semibold text-indigo-400 uppercase tracking-wide mb-3">🎯 Today's Priorities</p>
+            <div className="panel">
+              <p className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary-fg">
+                <IconTarget className="h-3.5 w-3.5" />Today's Priorities
+              </p>
               {result.summary.priorities_today.length > 0 ? (
-                <ul className="space-y-1.5">
+                <ul className="space-y-2">
                   {result.summary.priorities_today.map((p, i) => (
-                    <li key={i} className="text-sm text-gray-300 flex gap-2">
-                      <span className="text-indigo-400 shrink-0">·</span>{p}
+                    <li key={i} className="flex gap-2.5 text-sm leading-relaxed text-fg-muted">
+                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" aria-hidden="true" />{p}
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className="text-sm text-gray-500">None specified</p>
+                <p className="text-sm text-fg-subtle">None specified</p>
               )}
             </div>
           </div>
 
           {/* Meta */}
-          <p className="text-xs text-gray-600 text-right">
+          <p className="text-right font-mono text-xs text-fg-subtle">
             Generated by {result.model} · {result.entries_count} entries analysed ·{" "}
             {new Date(result.generated_at).toLocaleTimeString()}
           </p>

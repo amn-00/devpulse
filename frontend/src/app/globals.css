@@ -3,25 +3,146 @@
 @tailwind utilities;
 
 @layer base {
+  /* Dark is the default theme */
+  :root {
+    color-scheme: dark;
+    --bg: 9 9 11;
+    --surface: 17 17 19;
+    --surface-2: 24 24 27;
+    --border: 39 39 42;
+    --border-strong: 63 63 70;
+    --fg: 250 250 250;
+    --fg-muted: 161 161 170;
+    --fg-subtle: 139 139 148;
+    --primary: 99 102 241;
+    --primary-solid: 79 70 229;
+    --primary-fg: 129 140 248;
+    --success: 74 222 128;
+    --warning: 251 191 36;
+    --danger: 248 113 113;
+    --shadow-card: 0 0 #0000;
+  }
+
+  /* Light theme follows the OS preference */
+  @media (prefers-color-scheme: light) {
+    :root {
+      color-scheme: light;
+      --bg: 255 255 255;
+      --surface: 250 250 250;
+      --surface-2: 244 244 245;
+      --border: 228 228 231;
+      --border-strong: 212 212 216;
+      --fg: 9 9 11;
+      --fg-muted: 82 82 91;
+      --fg-subtle: 113 113 122;
+      --primary-fg: 79 70 229;
+      --success: 21 128 61;
+      --warning: 180 83 9;
+      --danger: 185 28 28;
+      --shadow-card: 0 1px 2px rgb(0 0 0 / 0.05);
+    }
+  }
+
   body {
     @apply antialiased;
+  }
+
+  h1, h2, h3 {
+    letter-spacing: -0.02em;
+  }
+
+  ::selection {
+    background: rgb(var(--primary) / 0.3);
+  }
+
+  :focus-visible {
+    outline: 2px solid rgb(var(--primary));
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
 @layer components {
+  /* Surfaces */
   .card {
-    @apply bg-gray-900 border border-gray-800 rounded-xl p-6;
+    @apply rounded-card border border-border bg-surface p-4 shadow-card sm:p-5;
+  }
+  .panel {
+    @apply rounded-lg border border-border bg-bg p-4;
+  }
+
+  /* Buttons */
+  .btn {
+    @apply inline-flex h-9 cursor-pointer select-none items-center justify-center gap-2 whitespace-nowrap rounded-md px-3.5 text-sm font-medium transition duration-150 disabled:cursor-not-allowed disabled:opacity-50;
   }
   .btn-primary {
-    @apply bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply btn bg-primary-solid text-white hover:brightness-110 active:brightness-95;
   }
   .btn-secondary {
-    @apply bg-gray-800 hover:bg-gray-700 text-gray-200 font-semibold py-2 px-4 rounded-lg transition-colors;
+    @apply btn border border-border-strong bg-surface-2 text-fg hover:bg-border;
   }
+  .btn-ghost {
+    @apply btn text-fg-muted hover:bg-surface-2 hover:text-fg;
+  }
+  .btn-lg {
+    @apply h-11 px-5 text-base;
+  }
+
+  /* Forms */
   .input {
-    @apply w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent;
+    @apply block min-h-10 w-full rounded-md border border-border-strong bg-surface-2 px-3 py-2 text-base text-fg transition duration-150 placeholder:text-fg-subtle focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-primary/25 sm:text-sm;
   }
   .label {
-    @apply block text-sm font-medium text-gray-300 mb-1;
+    @apply mb-1.5 block text-sm font-medium text-fg;
+  }
+  .hint {
+    @apply mt-1.5 text-xs text-fg-subtle;
+  }
+
+  /* Badges */
+  .badge {
+    @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2 py-0.5 text-xs font-medium tabular-nums;
+  }
+  .badge-neutral {
+    @apply badge border-border bg-surface-2 text-fg-muted;
+  }
+  .badge-success {
+    @apply badge border-success/30 bg-success/10 text-success;
+  }
+  .badge-warning {
+    @apply badge border-warning/30 bg-warning/10 text-warning;
+  }
+  .badge-danger {
+    @apply badge border-danger/30 bg-danger/10 text-danger;
+  }
+
+  /* Alerts */
+  .alert {
+    @apply flex items-start gap-2.5 rounded-lg border px-4 py-3 text-sm;
+  }
+  .alert-error {
+    @apply alert border-danger/30 bg-danger/10 text-danger;
+  }
+  .alert-success {
+    @apply alert border-success/30 bg-success/10 text-success;
+  }
+
+  /* Misc */
+  .section-title {
+    @apply text-base font-semibold text-fg;
+  }
+  .skeleton {
+    @apply animate-pulse rounded-md bg-surface-2;
+  }
+  .skip-link {
+    @apply sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-surface focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-fg;
   }
 }

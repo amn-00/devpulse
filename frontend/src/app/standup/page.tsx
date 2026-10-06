@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { submitStandup, getMyEntries } from "@/lib/api";
 import { useAuth } from "@/lib/AuthContext";
 import { StandupEntry } from "@/types";
+import { IconActivity, IconDashboard, IconLogOut, IconUser } from "@/components/icons";
 
 export default function StandupPage() {
   const { user, logout } = useAuth();
@@ -47,23 +48,37 @@ export default function StandupPage() {
   return (
     <div className="min-h-screen">
       {/* Navbar */}
-      <nav className="border-b border-gray-800 px-6 py-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-indigo-400">⚡ DevPulse</h1>
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-400">👤 {user?.name}</span>
-          {user?.role === "manager" && (
-            <button onClick={() => router.push("/dashboard")} className="btn-secondary text-sm py-1">
-              Dashboard
+      <nav aria-label="Main" className="sticky top-0 z-30 border-b border-border bg-bg/80 backdrop-blur-md">
+        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
+          <h1 className="flex items-center gap-2.5 text-[15px] font-semibold text-fg">
+            <span className="flex h-7 w-7 items-center justify-center rounded-md bg-primary-solid text-white">
+              <IconActivity className="h-4 w-4" />
+            </span>
+            DevPulse
+          </h1>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="mr-1 hidden items-center gap-2.5 border-r border-border pr-3 sm:flex">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full border border-border bg-surface-2 text-fg-muted">
+                <IconUser className="h-3.5 w-3.5" />
+              </span>
+              <p className="text-sm font-medium text-fg">{user?.name}</p>
+            </div>
+            {user?.role === "manager" && (
+              <button onClick={() => router.push("/dashboard")} className="btn-secondary">
+                <IconDashboard className="h-4 w-4" />
+                Dashboard
+              </button>
+            )}
+            <button onClick={() => { logout(); router.replace("/login"); }}
+              className="btn-ghost px-2.5 sm:px-3.5" aria-label="Sign out">
+              <IconLogOut className="h-4 w-4" />
+              <span className="hidden sm:inline">Sign out</span>
             </button>
-          )}
-          <button onClick={() => { logout(); router.replace("/login"); }}
-            className="text-sm text-gray-500 hover:text-gray-300 transition-colors">
-            Sign out
-          </button>
+          </div>
         </div>
       </nav>
 
-      <div className="max-w-2xl mx-auto px-4 py-8">
+      <div id="main" className="max-w-2xl mx-auto px-4 py-8">
         <h2 className="text-2xl font-bold mb-2">Daily Standup</h2>
         <p className="text-gray-400 mb-8">What did you work on? Any blockers?</p>
 

@@ -5,39 +5,44 @@ import { useRouter } from "next/navigation";
 import { getDashboard, resolveBlocker } from "@/lib/api";
 import { useAuth } from "@/lib/AuthContext";
 import { Dashboard } from "@/types";
+import {
+  IconActivity, IconAlertCircle, IconAlertTriangle, IconCheck, IconCircleCheck,
+  IconClock, IconFlag, IconLogOut, IconPen, IconUser, IconUsers, IconZap,
+} from "@/components/icons";
 
 function BlockerCard({ blocker, onResolve }: {
   blocker: Dashboard["activeBlockers"][0];
   onResolve: (id: number) => void;
 }) {
   return (
-    <div className={`rounded-xl border p-4 ${
-      blocker.isFlagged
-        ? "bg-red-950/30 border-red-700"
-        : "bg-amber-950/20 border-amber-800"
+    <div className={`card flex flex-col gap-4 border-l-2 sm:flex-row sm:items-start sm:justify-between ${
+      blocker.isFlagged ? "border-l-danger" : "border-l-warning"
     }`}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-sm font-medium text-gray-200">{blocker.userName}</span>
-            {blocker.isFlagged && (
-              <span className="text-xs bg-red-900 text-red-300 border border-red-700 px-2 py-0.5 rounded-full">
-                🚨 Flagged — {blocker.hoursOpen}h open
-              </span>
-            )}
-            {!blocker.isFlagged && (
-              <span className="text-xs text-amber-400">{blocker.hoursOpen}h open</span>
-            )}
-          </div>
-          <p className="text-sm text-gray-300">{blocker.description}</p>
+      <div className="min-w-0 flex-1">
+        <div className="mb-1.5 flex flex-wrap items-center gap-2">
+          <span className="text-sm font-medium text-fg">{blocker.userName}</span>
+          {blocker.isFlagged && (
+            <span className="badge-danger">
+              <IconFlag className="h-3 w-3" />
+              <span>Flagged · {blocker.hoursOpen}h open</span>
+            </span>
+          )}
+          {!blocker.isFlagged && (
+            <span className="badge-warning">
+              <IconClock className="h-3 w-3" />
+              <span>{blocker.hoursOpen}h open</span>
+            </span>
+          )}
         </div>
-        <button
-          onClick={() => onResolve(blocker.id)}
-          className="shrink-0 text-xs bg-green-900/40 hover:bg-green-800/60 border border-green-700 text-green-300 px-3 py-1.5 rounded-lg transition-colors"
-        >
-          ✓ Resolve
-        </button>
+        <p className="text-sm leading-relaxed text-fg-muted [overflow-wrap:anywhere]">{blocker.description}</p>
       </div>
+      <button
+        onClick={() => onResolve(blocker.id)}
+        className="btn-secondary shrink-0 self-start"
+      >
+        <IconCheck className="h-4 w-4 text-success" />
+        Resolve
+      </button>
     </div>
   );
 }
@@ -83,111 +88,181 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen">
       {/* Navbar */}
-      <nav className="border-b border-gray-800 px-6 py-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-indigo-400">⚡ DevPulse</h1>
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-400">👤 {user?.name} · Manager</span>
-          <button onClick={() => router.push("/standup")} className="btn-secondary text-sm py-1">
-            My Standup
-          </button>
-          <button onClick={() => { logout(); router.replace("/login"); }}
-            className="text-sm text-gray-500 hover:text-gray-300">
-            Sign out
-          </button>
+      <nav aria-label="Main" className="sticky top-0 z-30 border-b border-border bg-bg/80 backdrop-blur-md">
+        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
+          <h1 className="flex items-center gap-2.5 text-[15px] font-semibold text-fg">
+            <span className="flex h-7 w-7 items-center justify-center rounded-md bg-primary-solid text-white">
+              <IconActivity className="h-4 w-4" />
+            </span>
+            DevPulse
+          </h1>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="mr-1 hidden items-center gap-2.5 border-r border-border pr-3 sm:flex">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full border border-border bg-surface-2 text-fg-muted">
+                <IconUser className="h-3.5 w-3.5" />
+              </span>
+              <div className="leading-tight">
+                <p className="text-sm font-medium text-fg">{user?.name}</p>
+                <p className="text-xs text-fg-subtle">Manager</p>
+              </div>
+            </div>
+            <button onClick={() => router.push("/standup")} className="btn-secondary">
+              <IconPen className="h-4 w-4" />
+              My Standup
+            </button>
+            <button onClick={() => { logout(); router.replace("/login"); }}
+              className="btn-ghost px-2.5 sm:px-3.5" aria-label="Sign out">
+              <IconLogOut className="h-4 w-4" />
+              <span className="hidden sm:inline">Sign out</span>
+            </button>
+          </div>
         </div>
       </nav>
 
-      <div className="max-w-5xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
+      <main id="main" className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
+        <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-2xl font-bold">Team Dashboard</h2>
-            <p className="text-gray-400 mt-1">
+            <h2 className="text-2xl font-semibold text-fg">Team Dashboard</h2>
+            <p className="mt-1 text-sm text-fg-muted">
               Today's standup health — {new Date().toLocaleDateString("en-IN", {
                 weekday: "long", day: "numeric", month: "long",
               })}
             </p>
           </div>
           {dashboard && (
-            <div className="text-right text-xs text-gray-500">
-              {dashboard.cached ? "⚡ Cached" : "🔄 Live"} · Updated{" "}
-              {new Date(dashboard.generatedAt).toLocaleTimeString()}
+            <div className="flex items-center gap-2 text-xs text-fg-subtle">
+              {dashboard.cached ? (
+                <span className="badge-neutral"><IconZap className="h-3 w-3" />Cached</span>
+              ) : (
+                <span className="badge-success">
+                  <span className="h-1.5 w-1.5 rounded-full bg-success" aria-hidden="true" />Live
+                </span>
+              )}
+              <span>
+                Updated{" "}
+                <span className="font-mono tabular-nums">
+                  {new Date(dashboard.generatedAt).toLocaleTimeString()}
+                </span>
+              </span>
             </div>
           )}
         </div>
 
         {loading && (
-          <div className="text-center py-20 text-gray-500">Loading dashboard...</div>
+          <div role="status" className="space-y-10">
+            <span className="sr-only">Loading dashboard...</span>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="card space-y-4">
+                  <div className="skeleton h-4 w-24" />
+                  <div className="skeleton h-8 w-16" />
+                </div>
+              ))}
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {[0, 1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="card flex items-center gap-3">
+                  <div className="skeleton h-9 w-9 rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <div className="skeleton h-3.5 w-28" />
+                    <div className="skeleton h-3 w-20" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
         {error && (
-          <div className="bg-red-900/40 border border-red-700 text-red-300 rounded-lg px-4 py-3">
-            {error}
+          <div role="alert" className="alert-error">
+            <IconAlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>{error}</span>
           </div>
         )}
 
         {dashboard && (
-          <div className="space-y-8">
+          <div className="space-y-10">
             {/* Summary cards */}
-            <div className="grid grid-cols-3 gap-4">
-              <div className="card text-center">
-                <div className="text-3xl font-bold text-indigo-400">
-                  {postedCount}/{totalCount}
+            <section aria-label="Summary" className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="card">
+                <div className="flex items-center justify-between text-sm text-fg-muted">
+                  <span>Posted today</span>
+                  <IconUsers className="h-4 w-4 text-fg-subtle" />
                 </div>
-                <div className="text-sm text-gray-400 mt-1">Posted today</div>
+                <div className="mt-3 font-mono text-3xl font-semibold tabular-nums tracking-tight text-fg">
+                  {postedCount}<span className="text-fg-subtle">/{totalCount}</span>
+                </div>
               </div>
-              <div className="card text-center">
-                <div className={`text-3xl font-bold ${
-                  dashboard.activeBlockers.length > 0 ? "text-amber-400" : "text-green-400"
+              <div className="card">
+                <div className="flex items-center justify-between text-sm text-fg-muted">
+                  <span>Active blockers</span>
+                  <IconAlertTriangle className="h-4 w-4 text-fg-subtle" />
+                </div>
+                <div className={`mt-3 font-mono text-3xl font-semibold tabular-nums tracking-tight ${
+                  dashboard.activeBlockers.length > 0 ? "text-warning" : "text-success"
                 }`}>
                   {dashboard.activeBlockers.length}
                 </div>
-                <div className="text-sm text-gray-400 mt-1">Active blockers</div>
               </div>
-              <div className="card text-center">
-                <div className={`text-3xl font-bold ${
-                  dashboard.flaggedBlockerCount > 0 ? "text-red-400" : "text-green-400"
+              <div className="card">
+                <div className="flex items-center justify-between text-sm text-fg-muted">
+                  <span>Flagged (&gt;24h)</span>
+                  <IconFlag className="h-4 w-4 text-fg-subtle" />
+                </div>
+                <div className={`mt-3 font-mono text-3xl font-semibold tabular-nums tracking-tight ${
+                  dashboard.flaggedBlockerCount > 0 ? "text-danger" : "text-success"
                 }`}>
                   {dashboard.flaggedBlockerCount}
                 </div>
-                <div className="text-sm text-gray-400 mt-1">Flagged (&gt;24h)</div>
               </div>
-            </div>
+            </section>
 
             {/* Team members */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Team Members</h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <section>
+              <div className="mb-4 flex items-baseline justify-between gap-3">
+                <h3 className="section-title">Team Members</h3>
+                <span className="text-xs tabular-nums text-fg-subtle">
+                  {postedCount} of {totalCount} posted
+                </span>
+              </div>
+              <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {dashboard.teamMembers.map((member) => (
-                  <div key={member.id} className={`card flex items-center gap-3 ${
-                    !member.postedToday ? "opacity-60" : ""
-                  }`}>
-                    <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${
-                      member.postedToday ? "bg-green-400" : "bg-gray-600"
-                    }`} />
+                  <li key={member.id} className="card flex items-center gap-3">
+                    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border ${
+                      member.postedToday
+                        ? "border-success/30 bg-success/10 text-success"
+                        : "border-border bg-surface-2 text-fg-subtle"
+                    }`}>
+                      {member.postedToday ? <IconCheck className="h-4 w-4" /> : <IconClock className="h-4 w-4" />}
+                    </span>
                     <div className="min-w-0">
-                      <p className="text-sm font-medium truncate">{member.name}</p>
-                      <p className="text-xs text-gray-500">
-                        {member.postedToday ? "Posted ✓" : "Not posted yet"}
-                        {" · "}{member.streakLast7Days}/7 days
+                      <p className="truncate text-sm font-medium text-fg" title={member.name}>{member.name}</p>
+                      <p className="text-xs text-fg-subtle">
+                        {member.postedToday ? "Posted" : "Not posted yet"}
+                        {" · "}<span className="tabular-nums">{member.streakLast7Days}/7 days</span>
                       </p>
                     </div>
-                  </div>
+                  </li>
                 ))}
-              </div>
-            </div>
+              </ul>
+            </section>
 
             {/* Active blockers */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">
-                Active Blockers
+            <section>
+              <div className="mb-4 flex items-center gap-2">
+                <h3 className="section-title">Active Blockers</h3>
                 {dashboard.flaggedBlockerCount > 0 && (
-                  <span className="ml-2 text-sm font-normal text-red-400">
+                  <span className="badge-danger">
                     {dashboard.flaggedBlockerCount} flagged
                   </span>
                 )}
-              </h3>
+              </div>
               {dashboard.activeBlockers.length === 0 ? (
-                <div className="card text-center py-8 text-green-400">
-                  🎉 No active blockers — team is unblocked!
+                <div className="card flex flex-col items-center gap-2 py-10 text-center">
+                  <span className="mb-1 flex h-10 w-10 items-center justify-center rounded-full bg-success/10 text-success">
+                    <IconCircleCheck className="h-5 w-5" />
+                  </span>
+                  <p className="text-sm font-medium text-fg">No active blockers</p>
+                  <p className="text-sm text-fg-muted">Team is unblocked.</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -196,15 +271,15 @@ export default function DashboardPage() {
                   ))}
                 </div>
               )}
-            </div>
+            </section>
 
             {/* AI Standup Summary */}
-            <div className="card mt-6">
+            <section className="card">
               <AISummary />
-            </div>
+            </section>
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }
