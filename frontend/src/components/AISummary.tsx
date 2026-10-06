@@ -65,7 +65,7 @@ export default function AISummary() {
           <div>
             <h3 className="section-title">AI Standup Summary</h3>
             <p className="mt-0.5 text-xs text-fg-subtle">
-              Powered by Groq LLaMA · Prompt engineered for structured output
+              Powered by Groq · Prompt engineered for structured output
             </p>
           </div>
         </div>

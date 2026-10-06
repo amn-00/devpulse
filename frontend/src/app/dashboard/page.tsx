@@ -1,5 +1,6 @@
 "use client";
 import AISummary from "@/components/AISummary";
+import ThemeToggle from "@/components/ThemeToggle";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { getDashboard, resolveBlocker } from "@/lib/api";
@@ -110,6 +111,7 @@ export default function DashboardPage() {
               <IconPen className="h-4 w-4" />
               My Standup
             </button>
+            <ThemeToggle />
             <button onClick={() => { logout(); router.replace("/login"); }}
               className="btn-ghost px-2.5 sm:px-3.5" aria-label="Sign out">
               <IconLogOut className="h-4 w-4" />

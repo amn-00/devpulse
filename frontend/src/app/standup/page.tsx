@@ -4,7 +4,11 @@ import { useRouter } from "next/navigation";
 import { submitStandup, getMyEntries } from "@/lib/api";
 import { useAuth } from "@/lib/AuthContext";
 import { StandupEntry } from "@/types";
-import { IconActivity, IconDashboard, IconLogOut, IconUser } from "@/components/icons";
+import ThemeToggle from "@/components/ThemeToggle";
+import {
+  IconActivity, IconAlertCircle, IconAlertTriangle, IconCircleCheck, IconDashboard,
+  IconFlag, IconLogOut, IconSpinner, IconTarget, IconUser,
+} from "@/components/icons";
 
 export default function StandupPage() {
   const { user, logout } = useAuth();
@@ -69,6 +73,7 @@ export default function StandupPage() {
                 Dashboard
               </button>
             )}
+            <ThemeToggle />
             <button onClick={() => { logout(); router.replace("/login"); }}
               className="btn-ghost px-2.5 sm:px-3.5" aria-label="Sign out">
               <IconLogOut className="h-4 w-4" />
@@ -78,52 +83,64 @@ export default function StandupPage() {
         </div>
       </nav>
 
-      <div id="main" className="max-w-2xl mx-auto px-4 py-8">
-        <h2 className="text-2xl font-bold mb-2">Daily Standup</h2>
-        <p className="text-gray-400 mb-8">What did you work on? Any blockers?</p>
+      <main id="main" className="mx-auto max-w-2xl px-4 py-8 sm:px-6 sm:py-10">
+        <h2 className="text-2xl font-semibold text-fg">Daily Standup</h2>
+        <p className="mt-1 mb-8 text-sm text-fg-muted">What did you work on? Any blockers?</p>
 
         {success && (
-          <div className="bg-green-900/40 border border-green-700 text-green-300 rounded-lg px-4 py-3 mb-6">
-            ✅ Standup submitted successfully!
+          <div role="status" className="alert-success mb-6">
+            <IconCircleCheck className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>Standup submitted successfully!</span>
           </div>
         )}
         {error && (
-          <div className="bg-red-900/40 border border-red-700 text-red-300 rounded-lg px-4 py-3 mb-6">
-            {error}
+          <div role="alert" className="alert-error mb-6">
+            <IconAlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>{error}</span>
           </div>
         )}
 
-        <div className="card mb-8">
+        <div className="card mb-10">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="label">✅ Yesterday — What did you complete?</label>
-              <textarea className="input min-h-[80px] resize-none"
+              <label htmlFor="standup-yesterday" className="label flex items-center gap-2">
+                <IconCircleCheck className="h-4 w-4 text-success" />
+                Yesterday — What did you complete?
+              </label>
+              <textarea id="standup-yesterday" className="input min-h-[88px] resize-y"
                 value={form.yesterday}
                 onChange={(e) => setForm((p) => ({ ...p, yesterday: e.target.value }))}
                 placeholder="Finished the auth API, reviewed PR #42..." required />
             </div>
             <div>
-              <label className="label">🎯 Today — What are you working on?</label>
-              <textarea className="input min-h-[80px] resize-none"
+              <label htmlFor="standup-today" className="label flex items-center gap-2">
+                <IconTarget className="h-4 w-4 text-primary-fg" />
+                Today — What are you working on?
+              </label>
+              <textarea id="standup-today" className="input min-h-[88px] resize-y"
                 value={form.today}
                 onChange={(e) => setForm((p) => ({ ...p, today: e.target.value }))}
                 placeholder="Building the dashboard UI, writing Jest tests..." required />
             </div>
             <div>
-              <label className="label">
-                🚧 Blocker <span className="text-gray-500 font-normal">(optional)</span>
+              <label htmlFor="standup-blocker" className="label flex items-center gap-2">
+                <IconAlertTriangle className="h-4 w-4 text-warning" />
+                Blocker <span className="font-normal text-fg-subtle">(optional)</span>
               </label>
-              <textarea className="input min-h-[60px] resize-none"
+              <textarea id="standup-blocker" className="input min-h-[64px] resize-y"
+                aria-describedby="standup-blocker-hint"
                 value={form.blockerDescription}
                 onChange={(e) => setForm((p) => ({ ...p, blockerDescription: e.target.value }))}
                 placeholder="Leave blank if no blocker — or describe what's blocking you..." />
               {form.blockerDescription && (
-                <p className="text-xs text-amber-400 mt-1">
-                  ⚠️ This blocker will be flagged on the manager dashboard after 24 hours if unresolved
+                <p id="standup-blocker-hint" className="mt-1.5 flex items-start gap-1.5 text-xs text-warning">
+                  <IconFlag className="mt-px h-3.5 w-3.5 shrink-0" />
+                  This blocker will be flagged on the manager dashboard after 24 hours if unresolved
                 </p>
               )}
             </div>
-            <button className="btn-primary w-full" type="submit" disabled={loading}>
+            <button className="btn-primary h-10 w-full" type="submit" disabled={loading} aria-busy={loading}>
+              {loading && <IconSpinner className="h-4 w-4 animate-spin" />}
               {loading ? "Submitting..." : "Submit Standup"}
             </button>
           </form>
@@ -131,31 +148,46 @@ export default function StandupPage() {
 
         {/* History */}
         {history.length > 0 && (
-          <div>
-            <h3 className="text-lg font-semibold mb-4 text-gray-300">Your recent standups</h3>
-            <div className="space-y-3">
+          <section>
+            <h3 className="section-title mb-5">Your recent standups</h3>
+            <ol className="relative space-y-6 border-l border-border pl-6">
               {history.slice(0, 5).map((entry) => (
-                <div key={entry.id} className="card">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-gray-400">
+                <li key={entry.id} className="relative">
+                  <span
+                    aria-hidden="true"
+                    className={`absolute -left-[29px] top-1 h-2.5 w-2.5 rounded-full ring-4 ring-bg ${
+                      entry.has_blocker ? "bg-warning" : "bg-primary"
+                    }`}
+                  />
+                  <div className="mb-2 flex flex-wrap items-center gap-2">
+                    <time className="font-mono text-xs text-fg-muted">
                       {new Date(entry.entry_date).toLocaleDateString("en-IN", {
                         weekday: "short", day: "numeric", month: "short",
                       })}
-                    </span>
+                    </time>
                     {entry.has_blocker && (
-                      <span className="text-xs bg-amber-900/40 border border-amber-700 text-amber-300 px-2 py-0.5 rounded-full">
+                      <span className="badge-warning">
+                        <IconAlertTriangle className="h-3 w-3" />
                         Had blocker
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-300"><span className="text-gray-500">Yesterday:</span> {entry.yesterday}</p>
-                  <p className="text-sm text-gray-300 mt-1"><span className="text-gray-500">Today:</span> {entry.today}</p>
-                </div>
+                  <div className="card space-y-2 text-sm leading-relaxed">
+                    <p className="text-fg [overflow-wrap:anywhere]">
+                      <span className="mr-1.5 text-xs font-medium uppercase tracking-wider text-fg-subtle">Yesterday</span>
+                      {entry.yesterday}
+                    </p>
+                    <p className="text-fg [overflow-wrap:anywhere]">
+                      <span className="mr-1.5 text-xs font-medium uppercase tracking-wider text-fg-subtle">Today</span>
+                      {entry.today}
+                    </p>
+                  </div>
+                </li>
               ))}
-            </div>
-          </div>
+            </ol>
+          </section>
         )}
-      </div>
+      </main>
     </div>
   );
 }

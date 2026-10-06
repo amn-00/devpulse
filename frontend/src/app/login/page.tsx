@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { login } from "@/lib/api";
 import { useAuth } from "@/lib/AuthContext";
+import ThemeToggle from "@/components/ThemeToggle";
+import { IconActivity, IconAlertCircle, IconSpinner } from "@/components/icons";
 
 export default function LoginPage() {
   const { setAuth } = useAuth();
@@ -29,42 +31,51 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-indigo-400">⚡ DevPulse</h1>
-          <p className="text-gray-400 mt-2">Team standup tracker for remote engineering teams</p>
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-12">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-80 bg-[radial-gradient(ellipse_at_top,rgb(var(--primary)/0.15),transparent_70%)]" />
+      <ThemeToggle className="absolute right-4 top-4" />
+
+      <main id="main" className="relative w-full max-w-sm">
+        <div className="mb-8 flex flex-col items-center text-center">
+          <span className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary-solid text-white">
+            <IconActivity className="h-5 w-5" />
+          </span>
+          <h1 className="text-2xl font-semibold text-fg">DevPulse</h1>
+          <p className="mt-1.5 text-sm text-fg-muted">Team standup tracker for remote engineering teams</p>
         </div>
 
-        <div className="card">
-          <h2 className="text-xl font-semibold mb-6">Sign in</h2>
+        <div className="card sm:p-6">
+          <h2 className="mb-5 text-lg font-semibold text-fg">Sign in</h2>
           {error && (
-            <div className="bg-red-900/40 border border-red-700 text-red-300 rounded-lg px-4 py-3 mb-4 text-sm">
-              {error}
+            <div role="alert" className="alert-error mb-4">
+              <IconAlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>{error}</span>
             </div>
           )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="label">Email</label>
-              <input className="input" type="email" value={email}
+              <label htmlFor="login-email" className="label">Email</label>
+              <input id="login-email" className="input" type="email" autoComplete="email" value={email}
                 onChange={(e) => setEmail(e.target.value)} required placeholder="you@example.com" />
             </div>
             <div>
-              <label className="label">Password</label>
-              <input className="input" type="password" value={password}
+              <label htmlFor="login-password" className="label">Password</label>
+              <input id="login-password" className="input" type="password" autoComplete="current-password" value={password}
                 onChange={(e) => setPassword(e.target.value)} required placeholder="••••••••" />
             </div>
-            <button className="btn-primary w-full mt-2" type="submit" disabled={loading}>
+            <button className="btn-primary mt-2 h-10 w-full" type="submit" disabled={loading} aria-busy={loading}>
+              {loading && <IconSpinner className="h-4 w-4 animate-spin" />}
               {loading ? "Signing in..." : "Sign in"}
             </button>
           </form>
         </div>
 
-        <div className="mt-4 text-center text-sm text-gray-500 space-y-2">
-          <div><Link href="/create-team" className="text-indigo-400 hover:underline">Create a new team</Link></div>
-          <div><Link href="/join-team" className="text-indigo-400 hover:underline">Join an existing team</Link></div>
-        </div>
-      </div>
+        <p className="mt-6 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm text-fg-muted">
+          <Link href="/create-team" className="font-medium text-primary-fg hover:underline">Create a new team</Link>
+          <span aria-hidden="true" className="text-fg-subtle">·</span>
+          <Link href="/join-team" className="font-medium text-primary-fg hover:underline">Join an existing team</Link>
+        </p>
+      </main>
     </div>
   );
 }
