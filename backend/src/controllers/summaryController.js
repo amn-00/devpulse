@@ -124,7 +124,11 @@ async function generateSummary(req, res) {
         model: MODEL,
         messages: [{ role: "user", content: prompt }],
         temperature: 0.3, // lower = more consistent, structured output
-        max_tokens: 500,
+        // gpt-oss is a reasoning model: reasoning tokens count toward this
+        // limit, so it needs headroom beyond the ~300 tokens of JSON output
+        max_completion_tokens: 2000,
+        reasoning_effort: "low",
+        response_format: { type: "json_object" },
       }),
     });
 
@@ -135,16 +139,17 @@ async function generateSummary(req, res) {
     }
 
     const data = await groqRes.json();
-    const rawContent = data.choices[0].message.content.trim();
+    const choice = data.choices[0];
+    const rawContent = (choice.message.content || "").trim();
 
     // 5. Parse JSON response safely
     let summary;
     try {
-      summary = JSON.parse(rawContent);
-    } catch {
       // If the model wraps its JSON in markdown code fences, strip them
-      const cleaned = rawContent.replace(/```json|```/g, "").trim();
-      summary = JSON.parse(cleaned);
+      summary = JSON.parse(rawContent.replace(/```json|```/g, "").trim());
+    } catch {
+      console.error("Unparseable model output:", choice.finish_reason, rawContent.slice(0, 200));
+      return res.status(502).json({ error: "The AI returned an incomplete summary. Please try again." });
     }
 
     res.json({
