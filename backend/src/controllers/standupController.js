@@ -113,16 +113,16 @@ async function getDashboard(req, res) {
       [teamId, BLOCKER_FLAG_HOURS]
     );
 
-    // Posting streak per user (consecutive days including today, simplified)
-    const streakResult = await pool.query(
-      `SELECT user_id, COUNT(*) AS streak_days
+    // Days posted per user in the last 7 days (today + previous 6)
+    const recentPostsResult = await pool.query(
+      `SELECT user_id, COUNT(*) AS days_posted
        FROM standup_entries
-       WHERE team_id = $1 AND entry_date >= CURRENT_DATE - INTERVAL '7 days'
+       WHERE team_id = $1 AND entry_date > CURRENT_DATE - INTERVAL '7 days'
        GROUP BY user_id`,
       [teamId]
     );
-    const streakMap = Object.fromEntries(
-      streakResult.rows.map((r) => [r.user_id, parseInt(r.streak_days, 10)])
+    const recentPostsMap = Object.fromEntries(
+      recentPostsResult.rows.map((r) => [r.user_id, parseInt(r.days_posted, 10)])
     );
 
     const dashboard = {
@@ -130,7 +130,7 @@ async function getDashboard(req, res) {
         id: row.id,
         name: row.name,
         postedToday: row.created_at !== null,
-        streakLast7Days: streakMap[row.id] || 0,
+        postsLast7Days: recentPostsMap[row.id] || 0,
       })),
       activeBlockers: blockersResult.rows.map((b) => ({
         id: b.id,

@@ -93,7 +93,7 @@ export default function AISummary() {
         <div role="status" className="panel space-y-3">
           <p className="flex items-center gap-2 text-sm text-fg-muted">
             <IconSpinner className="h-4 w-4 animate-spin text-primary-fg" />
-            Analysing standup entries with LLaMA...
+            Analysing standup entries with AI...
           </p>
           <div className="skeleton h-3 w-full" />
           <div className="skeleton h-3 w-5/6" />

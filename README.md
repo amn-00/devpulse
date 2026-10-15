@@ -4,12 +4,12 @@
 
 ![CI](https://github.com/amn-00/devpulse/actions/workflows/ci.yml/badge.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)
-![Next.js](https://img.shields.io/badge/Next.js-14-black)
+![Next.js](https://img.shields.io/badge/Next.js-16-black)
 ![Express](https://img.shields.io/badge/Express.js-4.19-green)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue)
 ![Redis](https://img.shields.io/badge/Redis-Upstash-red)
 ![Jest](https://img.shields.io/badge/Jest-29-orange)
-![LLM](https://img.shields.io/badge/LLM-Groq%20LLaMA-purple)
+![LLM](https://img.shields.io/badge/LLM-Groq%20gpt--oss--20b-purple)
 
 ---
 
@@ -32,13 +32,13 @@ Similar to Geekbot and Standuply, but built from scratch as a full-stack product
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | Next.js 14 + TypeScript |
+| Frontend | Next.js 16 + TypeScript |
 | Styling | Tailwind CSS |
 | Backend | Express.js + Node.js |
 | Database | PostgreSQL (Neon — serverless) |
 | Cache | Redis (Upstash — serverless) |
 | Auth | JWT (jsonwebtoken + bcryptjs) |
-| AI Summary | Groq LLaMA API + Prompt Engineering |
+| AI Summary | Groq API (openai/gpt-oss-20b) + Prompt Engineering |
 | Testing | Jest + Supertest (17 tests) |
 | Deployment | Vercel (frontend) + Render (backend) |
 
@@ -49,8 +49,8 @@ Similar to Geekbot and Standuply, but built from scratch as a full-stack product
 - **JWT-based team authentication** — managers create teams, members join via invite code
 - **Daily standup entries** — structured yesterday/today/blockers form
 - **Auto-blocker flagging** — any blocker unresolved after 24 hours gets flagged 🚨 automatically
-- **Team health dashboard** — managers see who posted today, active blockers, 7-day posting streak
-- **AI Standup Summary** — manager clicks one button to get a LLaMA-generated structured daily summary with team health score, achievements, active blockers, and priorities — powered by Groq with prompt-engineered JSON output
+- **Team health dashboard** — managers see who posted today, active blockers, days posted in the last 7
+- **AI Standup Summary** — manager clicks one button to get an LLM-generated structured daily summary with team health score, achievements, active blockers (with how long each has been open), and priorities — powered by Groq (openai/gpt-oss-20b) with prompt-engineered JSON output
 - **Redis caching** — dashboard aggregation cached for 5 minutes; response shows `cached: true/false`
 - **17 Jest/Supertest tests** — auth, standup, dashboard, blocker resolution
 
@@ -74,7 +74,7 @@ Similar to Geekbot and Standuply, but built from scratch as a full-stack product
 └──────────┬──────────────────────┬───────────────────────┘
            │                      │                        
 ┌──────────▼────────┐  ┌──────────▼────────┐  ┌──────────────────┐
-│  PostgreSQL        │  │  Redis (Upstash)  │  │  Groq LLaMA API  │
+│  PostgreSQL        │  │  Redis (Upstash)  │  │  Groq LLM API    │
 │  4 tables          │  │  Dashboard cache  │  │  AI Summary      │
 │  FK constraints    │  │  TTL: 5 minutes   │  │  Prompt Eng.     │
 └───────────────────┘  └───────────────────┘  └──────────────────┘
@@ -165,7 +165,7 @@ TypeScript · Next.js · Express.js · PostgreSQL · Redis · Jest
 
 - Built async team standup tracker — JWT auth, PostgreSQL schema
   (4 tables), Redis caching with 5-min TTL, auto-flags unresolved
-  blockers after 24h; integrated Groq LLaMA API to generate
+  blockers after 24h; integrated Groq LLM API to generate
   structured daily summaries with prompt-engineered JSON output
 
 - 17 Jest/Supertest integration tests passing; deployed on Vercel + Render

@@ -35,7 +35,7 @@ export interface TeamMember {
   id: number;
   name: string;
   postedToday: boolean;
-  streakLast7Days: number;
+  postsLast7Days: number;
 }
 
 export interface Dashboard {

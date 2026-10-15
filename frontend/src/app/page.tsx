@@ -19,7 +19,7 @@ const steps = [
   {
     num: "2",
     title: "AI summarizes the day",
-    desc: "DevPulse uses LLaMA to condense the whole team's updates into one crisp summary, with blockers surfaced first.",
+    desc: "DevPulse uses an LLM to condense the whole team's updates into one crisp summary, with blockers surfaced first.",
   },
   {
     num: "3",
@@ -32,7 +32,7 @@ const features = [
   {
     icon: IconSparkles,
     title: "AI-powered summaries",
-    desc: "Groq-hosted LLaMA turns raw standup notes into clear daily digests for the whole team.",
+    desc: "A Groq-hosted LLM turns raw standup notes into clear daily digests for the whole team.",
   },
   {
     icon: IconAlertTriangle,
@@ -236,7 +236,7 @@ export default function Home() {
       <footer className="border-t border-border">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 text-sm text-fg-subtle sm:flex-row sm:px-6">
           <span className="text-center sm:text-left">
-            Built with Next.js 16 · Express · PostgreSQL · Redis · Groq LLaMA
+            Built with Next.js 16 · Express · PostgreSQL · Redis · Groq
           </span>
           <div className="flex items-center gap-4">
             <a

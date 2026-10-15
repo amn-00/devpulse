@@ -241,7 +241,7 @@ export default function DashboardPage() {
                       <p className="truncate text-sm font-medium text-fg" title={member.name}>{member.name}</p>
                       <p className="text-xs text-fg-subtle">
                         {member.postedToday ? "Posted" : "Not posted yet"}
-                        {" · "}<span className="tabular-nums">{member.streakLast7Days}/7 days</span>
+                        {" · "}<span className="tabular-nums">{member.postsLast7Days}/7 days</span>
                       </p>
                     </div>
                   </li>
