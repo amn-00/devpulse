@@ -1,5 +1,5 @@
 const pool = require("../config/db");
-const redis = require("../config/redis");
+const { cacheGet, cacheSet, cacheDel } = require("../config/redis");
 
 const BLOCKER_FLAG_HOURS = 24;
 const DASHBOARD_CACHE_TTL_SECONDS = 300; // 5 minutes
@@ -15,6 +15,7 @@ async function createEntry(req, res) {
   }
 
   const client = await pool.connect();
+  let entry;
   try {
     await client.query("BEGIN");
 
@@ -28,29 +29,51 @@ async function createEntry(req, res) {
        RETURNING *`,
       [userId, teamId, yesterday, today, hasBlocker]
     );
-    const entry = entryResult.rows[0];
+    entry = entryResult.rows[0];
 
-    if (hasBlocker) {
+    // Re-submitting today's entry must not duplicate its blocker:
+    // update the open one in place (keeping created_at, so the 24h flag
+    // still counts from when it was first reported), or resolve it if the
+    // blocker field was cleared.
+    const openBlocker = await client.query(
+      `SELECT id FROM blockers
+       WHERE entry_id = $1 AND is_resolved = FALSE
+       ORDER BY created_at ASC LIMIT 1`,
+      [entry.id]
+    );
+
+    if (hasBlocker && openBlocker.rows.length > 0) {
+      await client.query(
+        "UPDATE blockers SET description = $1 WHERE id = $2",
+        [blockerDescription.trim(), openBlocker.rows[0].id]
+      );
+    } else if (hasBlocker) {
       await client.query(
         `INSERT INTO blockers (entry_id, user_id, team_id, description)
          VALUES ($1, $2, $3, $4)`,
         [entry.id, userId, teamId, blockerDescription.trim()]
       );
+    } else if (openBlocker.rows.length > 0) {
+      await client.query(
+        `UPDATE blockers SET is_resolved = TRUE, resolved_at = NOW()
+         WHERE entry_id = $1 AND is_resolved = FALSE`,
+        [entry.id]
+      );
     }
 
     await client.query("COMMIT");
-
-    // Invalidate dashboard cache since team data changed
-    await redis.del(dashboardCacheKey(teamId));
-
-    res.status(201).json({ entry });
   } catch (err) {
     await client.query("ROLLBACK");
     console.error(err);
-    res.status(500).json({ error: "Failed to submit standup entry" });
+    return res.status(500).json({ error: "Failed to submit standup entry" });
   } finally {
     client.release();
   }
+
+  // Invalidate dashboard cache since team data changed
+  await cacheDel(dashboardCacheKey(teamId));
+
+  res.status(201).json({ entry });
 }
 
 /** GET /api/standup/mine — get my own entry history */
@@ -85,7 +108,7 @@ async function getDashboard(req, res) {
   const cacheKey = dashboardCacheKey(teamId);
 
   try {
-    const cached = await redis.get(cacheKey);
+    const cached = await cacheGet(cacheKey);
     if (cached) {
       return res.json({ ...JSON.parse(cached), cached: true });
     }
@@ -143,7 +166,7 @@ async function getDashboard(req, res) {
       generatedAt: new Date().toISOString(),
     };
 
-    await redis.setex(cacheKey, DASHBOARD_CACHE_TTL_SECONDS, JSON.stringify(dashboard));
+    await cacheSet(cacheKey, DASHBOARD_CACHE_TTL_SECONDS, JSON.stringify(dashboard));
 
     res.json({ ...dashboard, cached: false });
   } catch (err) {
@@ -167,7 +190,7 @@ async function resolveBlocker(req, res) {
       return res.status(404).json({ error: "Blocker not found" });
     }
 
-    await redis.del(dashboardCacheKey(teamId));
+    await cacheDel(dashboardCacheKey(teamId));
 
     res.json({ blocker: result.rows[0] });
   } catch (err) {

@@ -64,6 +64,21 @@ const DAYS_TO_SEED = 5;
  * @returns {Promise<object>} the demo manager user row (without password_hash)
  */
 async function ensureDemoData() {
+  // Fast path: if every demo member already has today's entry, the data is
+  // fresh — skip the reseed (and its bcrypt hash) and just return the manager
+  const fresh = await pool.query(
+    `SELECT m.id, m.name, m.email, m.team_id, m.role
+     FROM users m
+     JOIN teams t ON t.id = m.team_id AND t.invite_code = $2
+     WHERE m.email = $1
+       AND (SELECT COUNT(*) FROM standup_entries se
+            JOIN users u ON u.id = se.user_id
+            WHERE se.team_id = t.id AND se.entry_date = CURRENT_DATE
+              AND u.email = ANY($3)) = $4`,
+    [DEMO_MANAGER_EMAIL, DEMO_INVITE_CODE, MEMBERS.map((m) => m.email), MEMBERS.length]
+  );
+  if (fresh.rows.length > 0) return fresh.rows[0];
+
   const client = await pool.connect();
   try {
     await client.query("BEGIN");

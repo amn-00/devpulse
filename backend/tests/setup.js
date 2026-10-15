@@ -1,8 +1,7 @@
 /**
- * Test setup — uses a real test database (set TEST_DATABASE_URL in .env.test)
- * Cleans tables between test suites.
+ * Test setup — uses a real test database (set DATABASE_URL in .env.test;
+ * loaded by tests/loadEnv.js). Cleans tables between test suites.
  */
-require("dotenv").config({ path: ".env.test" });
 const pool = require("../src/config/db");
 const redis = require("../src/config/redis");
 

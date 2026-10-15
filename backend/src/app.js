@@ -8,6 +8,9 @@ const summaryRoutes = require("./routes/summary");
 
 const app = express();
 
+// Render sits behind a proxy — trust it so rate limits see the real client IP
+app.set("trust proxy", 1);
+
 app.use(cors());
 app.use(express.json());
 
