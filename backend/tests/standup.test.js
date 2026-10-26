@@ -4,6 +4,7 @@ const { clearDatabase, closeConnections } = require("./setup");
 jest.setTimeout(30000); // 30 seconds
 let token;
 let teamId;
+let inviteCode;
 
 async function setupTeamAndUser() {
   const res = await request(app).post("/api/auth/create-team").send({
@@ -12,7 +13,7 @@ async function setupTeamAndUser() {
     email: "testmanager@example.com",
     password: "password123",
   });
-  return { token: res.body.token, teamId: res.body.team.id };
+  return { token: res.body.token, teamId: res.body.team.id, inviteCode: res.body.team.invite_code };
 }
 
 beforeEach(async () => {
@@ -20,6 +21,7 @@ beforeEach(async () => {
   const auth = await setupTeamAndUser();
   token = auth.token;
   teamId = auth.teamId;
+  inviteCode = auth.inviteCode;
 });
 
 afterAll(async () => {
@@ -108,6 +110,26 @@ describe("GET /api/dashboard", () => {
       .set("Authorization", `Bearer ${token}`);
 
     expect(secondRes.body.cached).toBe(true);
+  });
+
+  it("forbids team members from the dashboard and resolving blockers", async () => {
+    const joinRes = await request(app).post("/api/auth/join-team").send({
+      inviteCode,
+      name: "Team Member",
+      email: "member@example.com",
+      password: "password123",
+    });
+    const memberToken = joinRes.body.token;
+
+    const dashboardRes = await request(app)
+      .get("/api/dashboard")
+      .set("Authorization", `Bearer ${memberToken}`);
+    expect(dashboardRes.statusCode).toBe(403);
+
+    const resolveRes = await request(app)
+      .patch("/api/blockers/1/resolve")
+      .set("Authorization", `Bearer ${memberToken}`);
+    expect(resolveRes.statusCode).toBe(403);
   });
 });
 

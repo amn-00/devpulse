@@ -39,7 +39,7 @@ Similar to Geekbot and Standuply, but built from scratch as a full-stack product
 | Cache | Redis (Upstash — serverless) |
 | Auth | JWT (jsonwebtoken + bcryptjs) |
 | AI Summary | Groq API (openai/gpt-oss-20b) + Prompt Engineering |
-| Testing | Jest + Supertest (17 tests) |
+| Testing | Jest + Supertest (18 tests) |
 | Deployment | Vercel (frontend) + Render (backend) |
 
 ---
@@ -52,7 +52,7 @@ Similar to Geekbot and Standuply, but built from scratch as a full-stack product
 - **Team health dashboard** — managers see who posted today, active blockers, days posted in the last 7
 - **AI Standup Summary** — manager clicks one button to get an LLM-generated structured daily summary with team health score, achievements, active blockers (with how long each has been open), and priorities — powered by Groq (openai/gpt-oss-20b) with prompt-engineered JSON output
 - **Redis caching** — dashboard aggregation cached for 5 minutes; response shows `cached: true/false`
-- **17 Jest/Supertest tests** — auth, standup, dashboard, blocker resolution
+- **18 Jest/Supertest tests** — auth, standup, dashboard, manager-only access, blocker resolution
 
 ---
 
@@ -129,10 +129,16 @@ npm run dev
 ```
 
 ### 4. Run tests
+Tests wipe every table, so they need their own database — they refuse to run if `.env.test` points at the same database as `.env`. The easiest option is throwaway Docker containers (the same setup CI uses):
 ```bash
+docker run -d --name devpulse-test-pg -e POSTGRES_USER=devpulse -e POSTGRES_PASSWORD=devpulse -e POSTGRES_DB=devpulse_test -p 55432:5432 postgres:16
+docker run -d --name devpulse-test-redis -p 56379:6379 redis:7
+
 cd backend
+cp .env.test.example .env.test
+npm run migrate:test   # creates tables in the test database
 npm test
-# 17 tests passing
+# 18 tests passing
 ```
 
 ---
@@ -168,7 +174,7 @@ TypeScript · Next.js · Express.js · PostgreSQL · Redis · Jest
   blockers after 24h; integrated Groq LLM API to generate
   structured daily summaries with prompt-engineered JSON output
 
-- 17 Jest/Supertest integration tests passing; deployed on Vercel + Render
+- 18 Jest/Supertest integration tests passing; deployed on Vercel + Render
 ```
 
 ---
